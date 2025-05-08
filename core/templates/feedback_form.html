@@ -1,0 +1,21 @@
+<h1>Leave Feedback</h1>
+<form method="POST">
+  {% csrf_token %}
+
+  <label for="customer_id">Customer ID:</label>
+  <input type="number" name="customer_id" required><br><br>
+
+  <label for="message">Message:</label><br>
+  <textarea name="message" rows="5" cols="40" required></textarea><br><br>
+
+  <label for="rating">Rating (1–5):</label>
+  <select name="rating" required>
+    <option value="5">5 - Excellent</option>
+    <option value="4">4 - Good</option>
+    <option value="3">3 - Okay</option>
+    <option value="2">2 - Poor</option>
+    <option value="1">1 - Terrible</option>
+  </select><br><br>
+
+  <button type="submit">Submit Feedback</button>
+</form>

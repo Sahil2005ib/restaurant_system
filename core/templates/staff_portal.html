@@ -1,0 +1,26 @@
+<h2>Staff Portal</h2>
+
+<form method="post">
+  {% csrf_token %}
+
+  <label>Staff ID:</label>
+  <input type="number" name="staff_id" required><br><br>
+
+  <label>Manager ID (if needed):</label>
+  <input type="number" name="manager_id"><br><br>
+
+  <label>Request_Type:</label>
+  <select name="Request_Type" required>
+    <option value="report_sick">Report Sick</option>
+    <option value="request_shift">Request Shift Change</option>
+    <option value="initiate_swap">Initiate Shift Swap</option>
+  </select><br><br>
+
+  <label>Details (Shift time, reason, etc.):</label>
+  <input type="text" name="details"><br><br>
+
+  <label>Target Staff ID (for swap):</label>
+  <input type="number" name="target_staff_id"><br><br>
+
+  <button type="submit">Submit Action</button>
+</form>

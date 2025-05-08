@@ -36,15 +36,6 @@ class Inventory(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.quantity} {self.unit})"
-    
-class Inventory(models.Model):
-    name = models.CharField(max_length=100)
-    quantity = models.PositiveIntegerField()
-    unit = models.CharField(max_length=20)  # e.g. 'kg', 'litres', 'pcs'
-    last_updated = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.name} ({self.quantity} {self.unit})"
 
 class Payment(models.Model):
     order = models.ForeignKey('Order', on_delete=models.CASCADE)
@@ -57,9 +48,10 @@ class Payment(models.Model):
 
 class Feedback(models.Model):
     customer = models.ForeignKey('Customer', on_delete=models.SET_NULL, null=True, blank=True)
-    message = models.TextField()
+    comment = models.TextField()
     rating = models.PositiveSmallIntegerField(default=5)  # rating from 1 to 5
     submitted_at = models.DateTimeField(auto_now_add=True)
+    is_urgent = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Feedback ({self.rating}/5)"
@@ -80,6 +72,34 @@ class Staff(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.role})"
+    
+class SickReport(models.Model):
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
+    date_reported = models.DateField(auto_now_add=True)
+    sick_date = models.DateField()
+    status = models.CharField(max_length=20, default='pending')  # e.g., pending, approved, rejected
+
+    def __str__(self):
+        return f"{self.staff.name} reported sick for {self.sick_date}"
+    
+class ShiftChangeRequest(models.Model):
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
+    requested_shift = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, default='pending')  # e.g., pending, approved, rejected
+    date_requested = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.staff.name} requests: {self.requested_shift}"
+
+class ShiftSwapRequest(models.Model):
+    requester = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='swap_requests')
+    target = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='swap_targets')
+    date_requested = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default='pending')  # e.g., pending, approved
+
+    def __str__(self):
+        return f"{self.requester.name} ↔ {self.target.name}"
+    
 class Report(models.Model):
     REPORT_TYPES = [
         ('sales', 'Sales Report'),
@@ -96,3 +116,4 @@ class Report(models.Model):
 
     def __str__(self):
         return f"{self.report_type} by {self.created_by} on {self.created_at.date()}"
+    

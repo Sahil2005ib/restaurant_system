@@ -1,0 +1,37 @@
+<h1>Make a Payment</h1>
+
+<form method="post">
+  {% csrf_token %}
+  
+  <label for="order_id">Order:</label>
+  <select name="order_id" id="order_id" onchange="updateAmount()">
+    {% for order in orders %}
+      <option value="{{ order.id }}" data-amount="{{ order.total_price }}">
+        Order #{{ order.id }} - £{{ order.total_price }}
+      </option>
+    {% endfor %}
+  </select><br><br>
+
+  <label for="amount">Amount (£):</label>
+  <input type="text" id="amount" readonly><br><br>
+
+  <label for="method">Payment Method:</label>
+  <select name="method" required>
+    <option value="card">Card</option>
+    <option value="cash">Cash</option>
+    <option value="paypal">PayPal</option>
+  </select><br><br>
+
+  <button type="submit">Submit Payment</button>
+</form>
+
+<script>
+  function updateAmount() {
+    const select = document.getElementById("order_id");
+    const amount = select.options[select.selectedIndex].getAttribute("data-amount");
+    document.getElementById("amount").value = amount;
+  }
+
+  // Trigger once on page load
+  window.onload = updateAmount;
+</script>

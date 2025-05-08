@@ -1,0 +1,47 @@
+<h2>Inventory Management Portal</h2>
+
+<h3>Low Stock Alerts (Under 10 units)</h3>
+<ul>
+  {% for item in low_stock_items %}
+    <li style="color:red;">{{ item.name }} - {{ item.quantity }} {{ item.unit }}</li>
+  {% empty %}
+    <li>No low stock items</li>
+  {% endfor %}
+</ul>
+
+<hr>
+
+<h3>All Inventory Items</h3>
+<table border="1">
+  <tr>
+    <th>Name</th>
+    <th>Quantity</th>
+    <th>Unit</th>
+    <th>Last Updated</th>
+    <th>Actions</th>
+  </tr>
+  {% for item in inventory_items %}
+  <tr>
+    <td>{{ item.name }}</td>
+    <td>{{ item.quantity }}</td>
+    <td>{{ item.unit }}</td>
+    <td>{{ item.last_updated }}</td>
+    <td>
+      <form method="post" style="display:inline;">
+        {% csrf_token %}
+        <input type="hidden" name="item_id" value="{{ item.id }}">
+        <input type="number" name="new_quantity" placeholder="New Qty" required>
+        <input type="hidden" name="action" value="update">
+        <button type="submit">Update</button>
+      </form>
+
+      <form method="post" style="display:inline;">
+        {% csrf_token %}
+        <input type="hidden" name="item_id" value="{{ item.id }}">
+        <input type="hidden" name="action" value="remove">
+        <button type="submit">Remove</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
