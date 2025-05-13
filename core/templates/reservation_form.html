@@ -14,13 +14,21 @@
         <input type="date" name="date" required><br><br>
 
         <label>Time:</label>
-        <input type="time" name="time" required><br><br>
+        <select name="time" required>
+          {% for slot in time_slots %}
+            <option value="{{ slot }}" {% if slot == time %}selected{% endif %}>{{ slot }}</option>
+          {% endfor %}
+        </select><br><br>
 
         <label>Number of Guests:</label>
         <input type="number" name="num_guests" required><br><br>
 
-        <label>Table Number:</label>
-        <input type="number" name="table_number" required><br><br>
+        <label>Available Tables:</label>
+        <select name="table_number" required>
+          {% for table in available_tables %}
+            <option value="{{ table.id }}">Table {{ table.number }}</option>
+          {% endfor %}
+        </select>
 
         <button type="submit">Submit</button>
     </form>

@@ -4,12 +4,28 @@ from django.core.exceptions import ObjectDoesNotExist
 
 def create_payment(order, amount, method):
     """Create a payment for a given order."""
+    already_paid = get_total_paid(order.id)
+
+    if amount + already_paid > order.total_price:
+        print(f"❌ Payment failed: trying to overpay Order #{order.id}")
+        return None  # Simulate failure
+
     payment = Payment.objects.create(
         order=order,
         amount=order.total_price,
         method=method,
         timestamp=timezone.now()
     )
+
+    print(f"✅ Payment recorded for Order #{order.id}: £{amount} via {method}")
+    
+    # Mark as paid if fully covered
+    total_paid = get_total_paid(order.id)
+    if total_paid >= order.total_price:
+        order.is_paid = True
+        order.save()
+        print(f"✅ Order #{order.id} marked as PAID.")
+
     return payment
 
 def get_payments_for_order(order_id):

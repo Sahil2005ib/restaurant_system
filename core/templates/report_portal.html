@@ -3,11 +3,20 @@
 <form method="post">
   {% csrf_token %}
 
+  {% if message %}
+    <p style="color: red;">{{ message }}</p>
+  {% endif %}
+
+  <label>Date Range (optional):</label><br>
+  From: <input type="date" name="start_date" value="{{ start_date }}"><br>
+  To: <input type="date" name="end_date" value="{{ end_date }}"><br><br>
+
+  <label>Select Manager:</label>
   <select name="staff_id" required>
     {% for manager in managers %}
       <option value="{{ manager.id }}">{{ manager.name }}</option>
     {% endfor %}
-  </select>
+  </select><br><br>
 
   <label>Report Type:</label>
   <select name="report_type" required>
@@ -17,14 +26,32 @@
     <option value="staff">Staff Report</option>
   </select><br><br>
 
-  <label>Filters:</label>
-  <input type="text" name="filters" placeholder="e.g. Date range or keywords"><br><br>
+  <label>Filters (keywords or notes):</label>
+  <input type="text" name="filters" placeholder="e.g. range, keywords"><br><br>
 
   <label>File Link (optional):</label>
   <input type="url" name="file_link"><br><br>
 
-  <button type="submit">Generate Report</button>
+  <button type="submit">Generate / Filter Report</button>
 </form>
+
+<hr>
+
+{% if reports %}
+  <h3>Filtered Reports:</h3>
+  <ul>
+    {% for report in reports %}
+      <li>
+        {{ report.created_at|date:"Y-m-d H:i" }} — {{ report.report_type|capfirst }} by {{ report.created_by.name }}
+        {% if report.file_link %}
+          - <a href="{{ report.file_link }}" target="_blank">Download</a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No reports found.</p>
+{% endif %}
 
 {% if message %}
   <p style="color:red;">{{ message }}</p>

@@ -1,16 +1,15 @@
 from core.models import Reservation, Customer
 from django.core.exceptions import ObjectDoesNotExist
 
-def create_reservation(customer, date, time, num_guests, table_number):
-    """Creates a reservation for a given customer object."""
+def create_reservation(customer, date, time, num_guests, table_obj):
     reservation = Reservation.objects.create(
         customer=customer,
         date=date,
         time=time,
         num_guests=num_guests,
-        table_number=table_number
+        table_number=table_obj
     )
-    return reservation
+    return reservation  
 
 def get_customer_reservations(customer_id):
     """Returns all reservations for a specific customer."""
