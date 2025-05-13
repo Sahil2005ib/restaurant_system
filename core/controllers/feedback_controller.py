@@ -1,6 +1,8 @@
 from core.models import Feedback
 from django.utils import timezone
+from django.shortcuts import render, redirect
 from django.core.exceptions import ObjectDoesNotExist
+from core.services.feedback_handler import handle_feedback_submission
 
 def submit_feedback(customer, message, rating):
     """Create a new feedback entry and alert manager if urgent."""
@@ -62,3 +64,19 @@ def is_urgent_feedback(message, rating):
 def alert_manager(feedback):
     """Simulate alert to manager for urgent feedback."""
     print(f"[ALERT] Urgent feedback from {feedback.customer.name}: {feedback.message}")
+
+
+def submit_feedback(request):
+    if request.method == 'POST':
+        data = {
+            'customer': request.user.customer,
+            'comment': request.POST.get('comment'),
+            'rating': request.POST.get('rating'),
+            'is_urgent': request.POST.get('is_urgent') == 'on',
+        }
+
+        try:
+            feedback = handle_feedback_submission(data)
+            return redirect('feedback_success')
+        except Exception as e:
+            return render(request, 'feedback_form.html', {'error': str(e)})

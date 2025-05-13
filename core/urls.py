@@ -20,5 +20,8 @@ urlpatterns = [
 
     path('inventory/', views.inventory_portal, name='inventory_portal'),
     path('inventory-success/', views.inventory_success, name='inventory_success'),
+
+    path('report/', views.report_portal, name='report_portal'),
+    path('report-success/', views.report_success, name='report_success'),
     
 ]

@@ -1,0 +1,51 @@
+<h2>Manager Report Portal</h2>
+
+<form method="post">
+  {% csrf_token %}
+
+  <select name="staff_id" required>
+    {% for manager in managers %}
+      <option value="{{ manager.id }}">{{ manager.name }}</option>
+    {% endfor %}
+  </select>
+
+  <label>Report Type:</label>
+  <select name="report_type" required>
+    <option value="sales">Sales Report</option>
+    <option value="inventory">Inventory Report</option>
+    <option value="feedback">Feedback Report</option>
+    <option value="staff">Staff Report</option>
+  </select><br><br>
+
+  <label>Filters:</label>
+  <input type="text" name="filters" placeholder="e.g. Date range or keywords"><br><br>
+
+  <label>File Link (optional):</label>
+  <input type="url" name="file_link"><br><br>
+
+  <button type="submit">Generate Report</button>
+</form>
+
+{% if message %}
+  <p style="color:red;">{{ message }}</p>
+{% endif %}
+
+<hr>
+
+<h3>Recent Sales Reports</h3>
+<ul>
+  {% if reports %}
+    {% for report in reports %}
+      <li>
+        {{ report.report_type|capfirst }} by 
+        {{ report.created_by.name }} 
+        on {{ report.created_at|date:"Y-m-d H:i" }}
+        {% if report.file_link %}
+          - <a href="{{ report.file_link }}" target="_blank">Download</a>
+        {% endif %}
+      </li>
+    {% endfor %}
+  {% else %}
+    <li>No reports found.</li>
+  {% endif %}
+</ul>

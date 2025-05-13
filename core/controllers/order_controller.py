@@ -1,5 +1,6 @@
 from core.models import Order, Customer
 from django.core.exceptions import ObjectDoesNotExist
+from core.services.order_notifier import notify_kitchen_of_order
 
 from core.models import Order
 
@@ -44,3 +45,16 @@ def delete_order(order_id):
         return True
     except ObjectDoesNotExist:
         return False
+    
+
+def create_order(customer, total_price, status):
+    """Creates a new order and notifies kitchen."""
+    order = Order.objects.create(
+        customer=customer,
+        total_price=total_price,
+        status=status
+    )
+
+    notify_kitchen_of_order(order)  # ✅ Now it's using a real order instance
+    print(f"🧾 New order received from: {order.customer.name}")
+    return order

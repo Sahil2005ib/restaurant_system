@@ -2,13 +2,15 @@ from core.models import Report, Staff
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 
-def create_report(staff, report_type, filters, file_link=None):
-    """Create a report (only if staff is a manager)."""
-    if staff.role != 'manager':
+def create_report(manager, report_type, filters, file_link=None):
+    print("DEBUG - Staff ID:", manager.id)
+    print("DEBUG - Staff Role:", manager.role)
+
+    if manager.role != 'manager':
         raise PermissionError("Only managers can create reports.")
     
     report = Report.objects.create(
-        created_by=staff,
+        created_by=manager,
         report_type=report_type,
         filters=filters,
         created_at=timezone.now(),

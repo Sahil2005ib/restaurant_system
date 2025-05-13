@@ -20,24 +20,41 @@ def reservation_form(request):
 def reservation_success(request):
     return render(request, 'reservation_success.html')
 
-from core.controllers.order_controller import create_order
+from core.models import MenuItem, OrderItem, Customer, Order
+from core.services.order_notifier import notify_kitchen_of_order
 from django.shortcuts import render, redirect
-from core.models import Customer
 
 def order_form(request):
     if request.method == 'POST':
         customer_id = request.POST.get('customer_id')
-        total_price = request.POST.get('total_price')
-        status = request.POST.get('status')
+        menu_item_ids = request.POST.getlist('menu_item')
+        quantities = request.POST.getlist('quantity')
 
         try:
             customer = Customer.objects.get(id=customer_id)
-            create_order(customer, total_price, status)
-            return redirect('order_success')
-        except Customer.DoesNotExist:
-            return render(request, 'order_form.html', {'error': 'Customer not found'})
+            order = Order.objects.create(customer=customer, status='new', total_price=0)
 
-    return render(request, 'order_form.html')
+            total_price = 0
+            for item_id, qty in zip(menu_item_ids, quantities):
+                item = MenuItem.objects.get(id=item_id)
+                quantity = int(qty)
+                OrderItem.objects.create(order=order, menu_item=item, quantity=quantity)
+                total_price += item.price * quantity
+
+            order.total_price = total_price
+            order.save()
+
+            notify_kitchen_of_order(order)
+            return redirect('order_success')
+        except Exception as e:
+            return render(request, 'order_form.html', {
+                'error': str(e),
+                'menu_items': MenuItem.objects.all()
+            })
+
+    return render(request, 'order_form.html', {
+        'menu_items': MenuItem.objects.all()
+    })
 
 def order_success(request):
     return render(request, 'order_success.html')
@@ -142,3 +159,42 @@ def inventory_portal(request):
 
 def inventory_success(request):
     return render(request, 'inventory_success.html')
+
+from django.shortcuts import render, redirect
+from core.controllers.report_controller import create_report, get_reports_by_type
+from core.models import Staff
+from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
+
+def report_portal(request):
+    message = ""
+    reports = []
+
+    if request.method == 'POST':
+        staff_id = request.POST.get('staff_id')
+        report_type = request.POST.get('report_type')
+        filters = request.POST.get('filters')
+        file_link = request.POST.get('file_link', "")
+
+        try:
+            manager = Staff.objects.get(id=staff_id, role='manager', is_active=True)
+            create_report(manager, report_type, filters, file_link)
+            return redirect('report_success')
+        except ObjectDoesNotExist:
+            message = "Selected manager does not exist."
+        except Exception as e:
+            message = str(e)
+
+    # Load manager dropdown list
+    managers = Staff.objects.filter(role='manager', is_active=True)
+    reports = get_reports_by_type('sales')
+
+    return render(request, 'report_portal.html', {
+        'managers': managers,
+        'reports': reports,
+        'message': message,
+        'now': timezone.now().date(),
+    })
+
+def report_success(request):
+    return render(request, 'report_success.html')
