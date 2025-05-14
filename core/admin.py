@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Customer, Reservation, Order, Inventory, Payment, Feedback, Staff, SickReport, ShiftChangeRequest, ShiftSwapRequest, Report, MenuItem, OrderItem
+from .models import Customer, Reservation, Order, Inventory, Payment, Feedback, Staff, SickReport, ShiftChangeRequest, ShiftSwapRequest, Report, MenuItem, OrderItem, UserProfile
  
 
 admin.site.register(Customer)
@@ -15,5 +15,6 @@ admin.site.register(ShiftSwapRequest)
 admin.site.register(Report)
 admin.site.register(MenuItem)
 admin.site.register(OrderItem)
+admin.site.register(UserProfile)
 
 # Register your models here.

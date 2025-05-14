@@ -1,6 +1,7 @@
 from core.models import Payment
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
+from core.models import SalesReport, Staff
 
 def create_payment(order, amount, method):
     """Create a payment for a given order."""
@@ -25,6 +26,16 @@ def create_payment(order, amount, method):
         order.is_paid = True
         order.save()
         print(f"✅ Order #{order.id} marked as PAID.")
+
+    if not SalesReport.objects.filter(order=order).exists():
+        manager = getattr(order, 'staff', None)  # or assign manually
+        SalesReport.objects.create(
+            order=order,
+            amount=payment.amount,
+            manager=manager,
+            date=timezone.now().date()
+        )
+        print(f"📊 SalesReport created for Order #{order.id}")
 
     return payment
 

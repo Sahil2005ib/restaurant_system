@@ -29,6 +29,9 @@
 
     <button type="submit">Place Order</button>
   </form>
+  <form action="{% url 'customer_dashboard' %}">
+    <button type="submit">Back to Dashboard</button>
+  </form>
 
   <script>
     const checkboxes = document.querySelectorAll('.menu-checkbox');
@@ -58,7 +61,7 @@
         .filter(cb => cb.checked);
 
       if (selectedItems.length === 0) {
-        alert("⚠️ Please select at least one menu item.");
+        alert(" Please select at least one menu item.");
         return false; // Stop form from submitting
       }
 

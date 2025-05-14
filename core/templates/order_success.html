@@ -6,5 +6,8 @@
 <body>
     <h1>Order Placed Successfully!</h1>
     <a href="/order">Place another order</a>
+    <form action="{% url 'customer_dashboard' %}">
+        <button type="submit">Back to Dashboard</button>
+      </form>
 </body>
 </html>

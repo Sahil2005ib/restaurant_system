@@ -16,3 +16,6 @@
 <p><strong>Order Paid:</strong> {{ order.is_paid|yesno:"Yes,No" }}</p>
 
 <a href="{% url 'order_form' %}">Back to Orders</a>
+<form action="{% url 'customer_dashboard' %}">
+  <button type="submit">Back to Dashboard</button>
+</form>

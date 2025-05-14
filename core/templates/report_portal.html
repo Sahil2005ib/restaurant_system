@@ -23,38 +23,51 @@
     <option value="sales">Sales Report</option>
     <option value="inventory">Inventory Report</option>
     <option value="feedback">Feedback Report</option>
-    <option value="staff">Staff Report</option>
   </select><br><br>
-
-  <label>Filters (keywords or notes):</label>
-  <input type="text" name="filters" placeholder="e.g. range, keywords"><br><br>
-
-  <label>File Link (optional):</label>
-  <input type="url" name="file_link"><br><br>
 
   <button type="submit">Generate / Filter Report</button>
 </form>
+<p><a href="{% url 'manager_dashboard' %}">🔙 Back to Dashboard</a></p>
 
 <hr>
 
-{% if reports %}
-  <h3>Filtered Reports:</h3>
-  <ul>
-    {% for report in reports %}
-      <li>
-        {{ report.created_at|date:"Y-m-d H:i" }} — {{ report.report_type|capfirst }} by {{ report.created_by.name }}
-        {% if report.file_link %}
-          - <a href="{{ report.file_link }}" target="_blank">Download</a>
-        {% endif %}
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>No reports found.</p>
-{% endif %}
+{% if report_type == "feedback" %}
+  <h3>Feedback Reports</h3>
+  {% for fb in reports %}
+    <div style="margin-bottom: 10px; padding: 10px; border-bottom: 1px solid #ccc;">
+      {% if fb.is_urgent %}
+        <strong style="color:red;">⚠️ Urgent</strong><br>
+      {% endif %}
+      <strong>{{ fb.customer.name }}</strong> ({{ fb.rating }}/5)<br>
+      <em>{{ fb.submitted_at|date:"M d, Y, H:i" }}</em>
+      <p>{{ fb.comment }}</p>
+    </div>
+  {% empty %}
+    <p>No feedback reports found.</p>
+  {% endfor %}
 
-{% if message %}
-  <p style="color:red;">{{ message }}</p>
+{% elif report_type == "sales" %}
+  <h3>Sales Reports</h3>
+  {% for report in reports %}
+    <p>
+      🧾 Order ID: {{ report.order.id }}<br>
+      💰 Amount: £{{ report.amount }}<br>
+      📅 Date: {{ report.date }}
+    </p>
+  {% empty %}
+    <p>No sales reports found.</p>
+  {% endfor %}
+
+{% elif report_type == "inventory" %}
+  <h3>Inventory Updates</h3>
+  {% for item in reports %}
+    <p>
+      📦 {{ item.name }} — {{ item.quantity }} {{ item.unit }}<br>
+      Last Updated: {{ item.last_updated }}
+    </p>
+  {% empty %}
+    <p>No inventory reports found.</p>
+  {% endfor %}
 {% endif %}
 
 <hr>

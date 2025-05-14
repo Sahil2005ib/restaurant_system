@@ -13,5 +13,8 @@
     <p><strong>Table:</strong> Table {{ reservation.table_number.number }}</p>
     
     <a href="{% url 'reservation_form' %}">Make another reservation</a>
+    <form action="{% url 'customer_dashboard' %}">
+        <button type="submit">Back to Dashboard</button>
+      </form>
 </body>
 </html>

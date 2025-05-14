@@ -1,0 +1,9 @@
+<h2>Menu</h2>
+<ul>
+  {% for item in menu_items %}
+    <li>{{ item.name }} — £{{ item.price }}</li>
+  {% empty %}
+    <li>No items available.</li>
+  {% endfor %}
+</ul>
+<a href="{% url 'customer_dashboard' %}">Back to Dashboard</a>

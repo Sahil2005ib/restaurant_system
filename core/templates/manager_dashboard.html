@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manager Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, {{ request.user.username }}!</h1>
+    <p>This is your manager dashboard.</p>
+
+    <ul>
+        <li><a href="{% url 'report_portal' %}">View Reports</a></li>
+        <li><a href="{% url 'inventory_approval_portal' %}">Approve Inventory Restock</a></li>
+        <li><a href="{% url 'logout' %}">Log Out</a></li>
+    </ul>
+
+    <hr>
+
+    <h2>🔴 Urgent Customer Feedback</h2>
+    <ul>
+        {% for fb in urgent_feedback %}
+            <li>
+                <strong>{{ fb.customer.name }}</strong> ({{ fb.rating }}/5): {{ fb.comment }}  
+                <br><em>Submitted: {{ fb.submitted_at }}</em>
+            </li>
+        {% empty %}
+            <li>No urgent feedback.</li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+    <h2>🗕️ Pending Shift Change Requests</h2>
+    <ul>
+      {% for req in shift_change_requests %}
+        <li>
+           {{ req.staff.name }} — wants shift: {{ req.requested_shift }}
+           <br><small>Requested on: {{ req.date_requested }}</small>
+           <form method="post" action="{% url 'approve_shift_change' req.id %}" style="display:inline;">
+               {% csrf_token %}
+               <button type="submit">✅ Approve</button>
+           </form>
+           <form method="post" action="{% url 'reject_shift_change' req.id %}" style="display:inline;">
+               {% csrf_token %}
+               <button type="submit">❌ Reject</button>
+           </form>
+        </li>
+      {% empty %}
+         <li>No pending shift change requests.</li>
+      {% endfor %}
+    </ul>
+
+    <hr>
+    <h2>🔁 Pending Shift Swaps</h2>
+    <ul>
+      {% for swap in shift_swap_requests %}
+        <li>
+          {{ swap.requester.name }} ↔ {{ swap.target.name }}
+          <br><small>Requested on: {{ swap.date_requested }}</small>
+          <form method="post" action="{% url 'approve_shift_swap' swap.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit">✅ Approve</button>
+          </form>
+          <form method="post" action="{% url 'reject_shift_swap' swap.id %}" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit">❌ Reject</button>
+          </form>
+        </li>
+      {% empty %}
+        <li>No pending shift swap requests.</li>
+      {% endfor %}
+    </ul>
+
+   <hr>
+   <h2>🤔 Pending Sick Reports</h2>
+   <ul>
+     {% for report in sick_reports %}
+       <li>
+         {{ report.staff.name }} reported sick for {{ report.sick_date }}
+         <br><small>Reported on: {{ report.date_reported }}</small>
+         <form method="post" action="{% url 'approve_sick_report' report.id %}" style="display:inline;">
+             {% csrf_token %}
+             <button type="submit">✅ Approve</button>
+         </form>
+         <form method="post" action="{% url 'reject_sick_report' report.id %}" style="display:inline;">
+             {% csrf_token %}
+             <button type="submit">❌ Reject</button>
+         </form>
+       </li>
+     {% empty %}
+       <li>No pending sick reports.</li>
+     {% endfor %}
+   </ul>
+
+    <h2>📊 Recent Reports</h2>
+    <ul>
+        {% for report in recent_reports %}
+            <li>
+                <strong>{{ report.get_report_type_display }}</strong> — {{ report.created_at.date }} <br>
+                Created by: {{ report.created_by.name }} <br>
+                {% if report.file_link %}
+                    <a href="{{ report.file_link }}">📎 Download</a>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>No recent reports.</li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <h2>📦 Low Stock Inventory (Needs Approval)</h2>
+    <form method="POST" action="{% url 'inventory_approval_portal' %}">
+        {% csrf_token %}
+        <ul>
+            {% for item in low_stock_items %}
+                <li>
+                    {{ item.name }} — {{ item.quantity }} {{ item.unit }}
+                    <label>
+                        <input type="checkbox" name="approve_items" value="{{ item.id }}">
+                        Approve restock
+                    </label>
+                </li>
+            {% empty %}
+                <li>All inventory levels are healthy.</li>
+            {% endfor %}
+        </ul>
+        {% if low_stock_items %}
+            <button type="submit">✅ Approve Selected</button>
+        {% endif %}
+    </form>
+
+</body>
+</html>

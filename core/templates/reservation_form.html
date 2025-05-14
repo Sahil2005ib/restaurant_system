@@ -2,6 +2,15 @@
 <html>
 <head>
     <title>Make a Reservation</title>
+    <script>
+        function updateAvailability() {
+            const dateInput = document.getElementById('date-input');
+            const timeSelect = document.getElementById('time-select');
+            
+            // Redirect to the same page with updated date and time parameters
+            window.location.href = `/reserve/?date=${dateInput.value}&time=${timeSelect.value}`;
+        }
+    </script>
 </head>
 <body>
     <h1>Reservation Form</h1>
@@ -9,28 +18,32 @@
         {% csrf_token %}
         <label>Customer ID:</label>
         <input type="number" name="customer_id" required><br><br>
-
+        
         <label>Date:</label>
-        <input type="date" name="date" required><br><br>
-
+        <input id="date-input" type="date" name="date" value="{{ date|date:'Y-m-d' }}" required 
+               onchange="updateAvailability()"><br><br>
+        
         <label>Time:</label>
-        <select name="time" required>
-          {% for slot in time_slots %}
+        <select id="time-select" name="time" required onchange="updateAvailability()">
+            {% for slot in time_slots %}
             <option value="{{ slot }}" {% if slot == time %}selected{% endif %}>{{ slot }}</option>
-          {% endfor %}
+            {% endfor %}
         </select><br><br>
-
+        
         <label>Number of Guests:</label>
         <input type="number" name="num_guests" required><br><br>
-
+        
         <label>Available Tables:</label>
         <select name="table_number" required>
-          {% for table in available_tables %}
-            <option value="{{ table.id }}">Table {{ table.number }}</option>
-          {% endfor %}
-        </select>
-
+            {% for table in available_tables %}
+            <option value="{{ table.id }}">Table {{ table.number }} (Capacity: {{ table.capacity }})</option>
+            {% endfor %}
+        </select><br><br>
+        
         <button type="submit">Submit</button>
     </form>
+    <form action="{% url 'customer_dashboard' %}">
+        <button type="submit">Back to Dashboard</button>
+      </form>
 </body>
 </html>

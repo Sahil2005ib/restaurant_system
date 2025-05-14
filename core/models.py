@@ -1,4 +1,32 @@
+from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
+
+class UserProfile(models.Model):
+    ROLE_CHOICES = [
+        ('customer', 'Customer'),
+        ('waitstaff', 'Waitstaff'),
+        ('kitchen', 'Kitchen Staff'),
+        ('inventory', 'Inventory Staff'),
+        ('manager', 'Manager'),
+    ]
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+
+    def __str__(self):
+        return f"{self.user.username} ({self.role})"
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.userprofile.save()
 
 class Customer(models.Model):
     name = models.CharField(max_length=100)
@@ -51,6 +79,34 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.quantity} x {self.menu_item.name} for Order #{self.order.id}"
     
+class InventoryItem(models.Model):
+    name = models.CharField(max_length=100)
+    quantity = models.PositiveIntegerField()
+    unit = models.CharField(max_length=20)
+    restock_approved = models.BooleanField(default=False)  # ✅ Add this line
+
+    def __str__(self):
+        return f"{self.name} ({self.quantity} {self.unit})"
+    
+class RestockRequest(models.Model):
+    item = models.ForeignKey("Inventory", on_delete=models.CASCADE)
+    requested_by = models.ForeignKey("Staff", on_delete=models.CASCADE)
+    quantity_requested = models.PositiveIntegerField()
+    notes = models.TextField(blank=True)
+    is_approved = models.BooleanField(default=False)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+
+    def approve(self):
+        self.is_approved = True
+        self.approved_at = timezone.now()
+        self.item.restock_approved = True
+        self.item.save()
+        self.save()
+
+    def __str__(self):
+        return f"Request for {self.item.name} by {self.requested_by.name}"
+    
 class Inventory(models.Model):
     name = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
@@ -79,6 +135,14 @@ class Feedback(models.Model):
     def __str__(self):
         return f"Feedback ({self.rating}/5)"
     
+class StaffRequest(models.Model):
+    staff = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    request_type = models.CharField(max_length=50)
+    details = models.TextField()
+    status = models.CharField(default='Pending', choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')])
+    target_staff = models.ForeignKey(UserProfile, null=True, blank=True, related_name='swap_target', on_delete=models.SET_NULL)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    
 class Staff(models.Model):
     ROLE_CHOICES = [
         ('manager', 'Manager'),
@@ -94,7 +158,7 @@ class Staff(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.name} ({self.role})"
+        return f"{self.name} ({self.get_role_display()})"
     
 class SickReport(models.Model):
     staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
@@ -122,6 +186,12 @@ class ShiftSwapRequest(models.Model):
 
     def __str__(self):
         return f"{self.requester.name} ↔ {self.target.name}"
+    
+class SalesReport(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateField(auto_now_add=True)
+    manager = models.ForeignKey(Staff, on_delete=models.SET_NULL, null=True)
     
 class Report(models.Model):
     REPORT_TYPES = [
