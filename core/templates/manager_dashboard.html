@@ -1,136 +1,222 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Manager Dashboard</title>
+  <meta charset="UTF-8">
+  <title>Manager Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      padding: 30px;
+      color: #2c3e50;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+
+    h2 {
+      margin-top: 40px;
+      font-size: 22px;
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 5px;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    li {
+      background: #fff;
+      margin-bottom: 12px;
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .btn {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      margin-right: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn:hover {
+      background-color: #2980b9;
+    }
+
+    .danger {
+      background-color: #e74c3c;
+    }
+
+    .danger:hover {
+      background-color: #c0392b;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: white;
+      margin-left: 10px;
+    }
+
+    .badge-pending { background-color: #f39c12; }
+    .badge-approved { background-color: #27ae60; }
+    .badge-rejected { background-color: #c0392b; }
+
+    .logout-form {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #ccc;
+      margin: 30px 0;
+    }
+
+    a {
+      color: #2980b9;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-    <h1>Welcome, {{ request.user.username }}!</h1>
-    <p>This is your manager dashboard.</p>
 
-    <ul>
-        <li><a href="{% url 'report_portal' %}">View Reports</a></li>
-        <li><a href="{% url 'inventory_approval_portal' %}">Approve Inventory Restock</a></li>
+<div class="logout-form">
+  <form method="post" action="{% url 'user_logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn danger">Logout</button>
+  </form>
+</div>
 
-        <form action="{% url 'user_logout' %}" method="post" style="text-align: right;">
-           {% csrf_token %}
-           <button type="submit" class="btn" style="background-color: #dc3545;">Logout</button>
-        </form>
-    </ul>
+<h1>👤 Manager Dashboard</h1>
+<p>Welcome, <strong>{{ request.user.username }}</strong></p>
 
-    <hr>
+<ul>
+  <li><a href="{% url 'report_portal' %}">📊 View Reports</a></li>
+  <li><a href="{% url 'inventory_approval_portal' %}">📦 Approve Inventory Restocks</a></li>
+</ul>
 
-    <h2>🔴 Urgent Customer Feedback</h2>
-    <ul>
-        {% for fb in urgent_feedback %}
-            <li>
-                <strong>{{ fb.customer.name }}</strong> ({{ fb.rating }}/5): {{ fb.comment }}  
-                <br><em>Submitted: {{ fb.submitted_at }}</em>
-            </li>
-        {% empty %}
-            <li>No urgent feedback.</li>
-        {% endfor %}
-    </ul>
+<h2>🔴 Urgent Customer Feedback</h2>
+<ul>
+  {% for fb in urgent_feedback %}
+    <li>
+      <strong>{{ fb.customer.name }}</strong> ({{ fb.rating }}/5): {{ fb.comment }}  
+      <br><em>Submitted: {{ fb.submitted_at }}</em>
+    </li>
+  {% empty %}
+    <li>No urgent feedback.</li>
+  {% endfor %}
+</ul>
 
-    <hr>
-    <h2>🗕️ Pending Shift Change Requests</h2>
-    <ul>
-      {% for req in shift_change_requests %}
-        <li>
-           {{ req.staff.name }} — wants shift: {{ req.requested_shift }}
-           <br><small>Requested on: {{ req.date_requested }}</small>
-           <form method="post" action="{% url 'approve_shift_change' req.id %}" style="display:inline;">
-               {% csrf_token %}
-               <button type="submit">✅ Approve</button>
-           </form>
-           <form method="post" action="{% url 'reject_shift_change' req.id %}" style="display:inline;">
-               {% csrf_token %}
-               <button type="submit">❌ Reject</button>
-           </form>
-        </li>
-      {% empty %}
-         <li>No pending shift change requests.</li>
-      {% endfor %}
-    </ul>
-
-    <hr>
-    <h2>🔁 Pending Shift Swaps</h2>
-    <ul>
-      {% for swap in shift_swap_requests %}
-        <li>
-          {{ swap.requester.name }} ↔ {{ swap.target.name }}
-          <br><small>Requested on: {{ swap.date_requested }}</small>
-          <form method="post" action="{% url 'approve_shift_swap' swap.id %}" style="display:inline;">
-              {% csrf_token %}
-              <button type="submit">✅ Approve</button>
-          </form>
-          <form method="post" action="{% url 'reject_shift_swap' swap.id %}" style="display:inline;">
-              {% csrf_token %}
-              <button type="submit">❌ Reject</button>
-          </form>
-        </li>
-      {% empty %}
-        <li>No pending shift swap requests.</li>
-      {% endfor %}
-    </ul>
-
-   <hr>
-   <h2>🤔 Pending Sick Reports</h2>
-   <ul>
-     {% for report in sick_reports %}
-       <li>
-         {{ report.staff.name }} reported sick for {{ report.sick_date }}
-         <br><small>Reported on: {{ report.date_reported }}</small>
-         <form method="post" action="{% url 'approve_sick_report' report.id %}" style="display:inline;">
-             {% csrf_token %}
-             <button type="submit">✅ Approve</button>
-         </form>
-         <form method="post" action="{% url 'reject_sick_report' report.id %}" style="display:inline;">
-             {% csrf_token %}
-             <button type="submit">❌ Reject</button>
-         </form>
-       </li>
-     {% empty %}
-       <li>No pending sick reports.</li>
-     {% endfor %}
-   </ul>
-
-    <h2>📊 Recent Reports</h2>
-    <ul>
-        {% for report in recent_reports %}
-            <li>
-                <strong>{{ report.get_report_type_display }}</strong> — {{ report.created_at.date }} <br>
-                Created by: {{ report.created_by.name }} <br>
-                {% if report.file_link %}
-                    <a href="{{ report.file_link }}">📎 Download</a>
-                {% endif %}
-            </li>
-        {% empty %}
-            <li>No recent reports.</li>
-        {% endfor %}
-    </ul>
-
-    <hr>
-
-    <h2>📦 Low Stock Inventory (Needs Approval)</h2>
-    <form method="POST" action="{% url 'inventory_approval_portal' %}">
+<h2>🗓️ Pending Shift Change Requests</h2>
+<ul>
+  {% for req in shift_change_requests %}
+    <li>
+      {{ req.staff.name }} — wants shift: <strong>{{ req.requested_shift }}</strong><br>
+      <small>Requested: {{ req.date_requested }}</small><br>
+      <form method="post" action="{% url 'approve_shift_change' req.id %}" style="display:inline;">
         {% csrf_token %}
-        <ul>
-            {% for item in low_stock_items %}
-                <li>
-                    {{ item.name }} — {{ item.quantity }} {{ item.unit }}
-                    <label>
-                        <input type="checkbox" name="approve_items" value="{{ item.id }}">
-                        Approve restock
-                    </label>
-                </li>
-            {% empty %}
-                <li>All inventory levels are healthy.</li>
-            {% endfor %}
-        </ul>
-        {% if low_stock_items %}
-            <button type="submit">✅ Approve Selected</button>
-        {% endif %}
-    </form>
+        <button class="btn">✅ Approve</button>
+      </form>
+      <form method="post" action="{% url 'reject_shift_change' req.id %}" style="display:inline;">
+        {% csrf_token %}
+        <button class="btn danger">❌ Reject</button>
+      </form>
+    </li>
+  {% empty %}
+    <li>No pending shift change requests.</li>
+  {% endfor %}
+</ul>
+
+<h2>🔁 Pending Shift Swaps</h2>
+<ul>
+  {% for swap in shift_swap_requests %}
+    <li>
+      {{ swap.requester.name }} ↔ {{ swap.target.name }}<br>
+      <small>Requested: {{ swap.date_requested }}</small><br>
+      <form method="post" action="{% url 'approve_shift_swap' swap.id %}" style="display:inline;">
+        {% csrf_token %}
+        <button class="btn">✅ Approve</button>
+      </form>
+      <form method="post" action="{% url 'reject_shift_swap' swap.id %}" style="display:inline;">
+        {% csrf_token %}
+        <button class="btn danger">❌ Reject</button>
+      </form>
+    </li>
+  {% empty %}
+    <li>No pending shift swaps.</li>
+  {% endfor %}
+</ul>
+
+<h2>🤒 Sick Reports</h2>
+<ul>
+  {% for report in sick_reports %}
+    <li>
+      {{ report.staff.name }} called in sick for <strong>{{ report.sick_date }}</strong><br>
+      <small>Reported: {{ report.date_reported }}</small><br>
+      <form method="post" action="{% url 'approve_sick_report' report.id %}" style="display:inline;">
+        {% csrf_token %}
+        <button class="btn">✅ Approve</button>
+      </form>
+      <form method="post" action="{% url 'reject_sick_report' report.id %}" style="display:inline;">
+        {% csrf_token %}
+        <button class="btn danger">❌ Reject</button>
+      </form>
+    </li>
+  {% empty %}
+    <li>No pending sick reports.</li>
+  {% endfor %}
+</ul>
+
+<h2>🗂 Recent Reports</h2>
+<ul>
+  {% for report in recent_reports %}
+    <li>
+      <strong>{{ report.get_report_type_display }}</strong> — {{ report.created_at.date }}<br>
+      Created by: {{ report.created_by.name }}
+      {% if report.file_link %}
+        <br><a href="{{ report.file_link }}">📎 Download</a>
+      {% endif %}
+    </li>
+  {% empty %}
+    <li>No recent reports.</li>
+  {% endfor %}
+</ul>
+
+<h2>📦 Low Stock Inventory (Needs Approval)</h2>
+<form method="POST" action="{% url 'inventory_approval_portal' %}">
+  {% csrf_token %}
+  <ul>
+    {% for item in low_stock_items %}
+      <li>
+        {{ item.name }} — {{ item.quantity }} {{ item.unit }}
+        <label>
+          <input type="checkbox" name="approve_items" value="{{ item.id }}">
+          Approve Restock
+        </label>
+      </li>
+    {% empty %}
+      <li>All inventory levels are healthy.</li>
+    {% endfor %}
+  </ul>
+  {% if low_stock_items %}
+    <button type="submit" class="btn">✅ Approve Selected</button>
+  {% endif %}
+</form>
 
 </body>
 </html>

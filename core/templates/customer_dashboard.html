@@ -1,14 +1,99 @@
-<!-- templates/customer_dashboard.html -->
-<h1>Welcome, {{ user.username }}!</h1>
-<p>This is your customer dashboard.</p>
-<ul>
-    <li><a href="{% url 'menu_list' %}">View Menu</a></li>
-    <li><a href="/reserve/">Make Reservation</a></li>
-    <li><a href="{% url 'order_form' %}">Place Order</a></li>
-    <li><a href="/feedback/">Leave Feedback</a></li>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customer Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
 
-    <form action="{% url 'user_logout' %}" method="post" style="text-align: right;">
-       {% csrf_token %}
-       <button type="submit" class="btn" style="background-color: #dc3545;">Logout</button>
-    </form>
-</ul>
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 30px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+
+    h1 {
+      color: #2c3e50;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #555;
+      font-size: 16px;
+      margin-bottom: 25px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      margin-bottom: 15px;
+    }
+
+    a {
+      text-decoration: none;
+      background-color: #3498db;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 5px;
+      display: inline-block;
+      font-weight: 500;
+    }
+
+    a:hover {
+      background-color: #2980b9;
+    }
+
+    .logout-form {
+      text-align: right;
+      margin-top: 30px;
+    }
+
+    .logout-form button {
+      background-color: crimson;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+
+    .logout-form button:hover {
+      background-color: #a30000;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>👋 Welcome, {{ user.username }}!</h1>
+    <p>This is your customer dashboard. What would you like to do today?</p>
+
+    <ul>
+      <li><a href="{% url 'menu_list' %}">📋 View Menu</a></li>
+      <li><a href="/reserve/">📅 Make a Reservation</a></li>
+      <li><a href="{% url 'order_form' %}">🛒 Place an Order</a></li>
+      <li><a href="/feedback/">📝 Leave Feedback</a></li>
+    </ul>
+
+    <div class="logout-form">
+      <form method="post" action="{% url 'user_logout' %}">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>
