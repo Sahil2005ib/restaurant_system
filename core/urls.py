@@ -7,7 +7,9 @@ urlpatterns = [
     path('login/', views.user_login, name='user_login'),
     path('dashboard/customer/', views.customer_dashboard, name='customer_dashboard'),
 
-    path('logout/', views.user_logout, name='logout'),
+    path('logout/', views.user_logout, name='user_logout'),
+
+    path('orders/<int:order_id>/resolve-split/', views.resolve_split, name='resolve_split'),
 
     path('menu/', views.menu_list, name='menu_list'),
 
@@ -33,6 +35,7 @@ urlpatterns = [
     path('inventory/', views.inventory_portal, name='inventory_portal'),
     path('inventory-success/', views.inventory_success, name='inventory_success'),
     path('request-restock/', views.request_restock, name='request_restock'),
+    path('dashboard/inventory/', views.inventory_dashboard, name='inventory_dashboard'),
 
     path('report/', views.report_portal, name='report_portal'),
     path('report-success/', views.report_success, name='report_success'),
@@ -42,4 +45,13 @@ urlpatterns = [
     path('reject-shift-swap/<int:request_id>/', views.reject_shift_swap, name='reject_shift_swap'),
     path('approve-sick-report/<int:report_id>/', views.approve_sick_report, name='approve_sick_report'),
     path('reject-sick-report/<int:report_id>/', views.reject_sick_report, name='reject_sick_report'),
+    path('inventory/remove/<int:item_id>/', views.remove_inventory_item, name='remove_inventory_item'),
+
+    path('dashboard/waitstaff/', views.waitstaff_dashboard, name='waitstaff_dashboard'),
+    path('waitstaff/split-bill/<int:order_id>/', views.split_bill, name='split_bill'),
+    path('waitstaff/mark-served/<int:order_id>/', views.mark_served, name='mark_served'),
+
+    path('dashboard/kitchen/', views.kitchen_dashboard, name='kitchen_dashboard'),
+    path('dashboard/kitchen/start/<int:order_id>/', views.start_preparing, name='start_preparing'),
+    path('dashboard/kitchen/ready/<int:order_id>/', views.mark_ready, name='mark_ready'),
 ]

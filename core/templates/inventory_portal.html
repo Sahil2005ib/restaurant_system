@@ -60,4 +60,8 @@
     </td>
   </tr>
   {% endfor %}
+  <form action="{% url 'user_logout' %}" method="post" style="text-align: right;">
+    {% csrf_token %}
+    <button type="submit" class="btn" style="background-color: #dc3545;">Logout</button>
+  </form>
 </table>

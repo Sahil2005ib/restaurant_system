@@ -24,6 +24,8 @@ def create_payment(order, amount, method):
     total_paid = get_total_paid(order.id)
     if total_paid >= order.total_price:
         order.is_paid = True
+        if order.status != 'split_pending': 
+            order.status = 'paid' 
         order.save()
         print(f"✅ Order #{order.id} marked as PAID.")
 
@@ -46,3 +48,12 @@ def get_payments_for_order(order_id):
 def get_total_paid(order_id):
     """Calculate the total amount paid for an order."""
     return sum(p.amount for p in Payment.objects.filter(order__id=order_id))
+
+# core/controllers/payment_controller.py
+
+def handle_split_bill(order):
+    """Mark the order as split and log it for waitstaff."""
+    order.status = 'split_pending'
+    order.is_split = True  # ✅ flag for waitstaff to check on dashboard
+    order.save()
+    print(f"🔔 Order #{order.id} marked as split bill (awaiting full payment or confirmation).")

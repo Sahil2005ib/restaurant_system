@@ -31,7 +31,7 @@ def user_login(request):
             if role == 'customer':
                 return redirect('customer_dashboard')
             elif role == 'waitstaff':
-                return redirect('staff_dashboard')
+                return redirect('waitstaff_dashboard')
             elif role == 'kitchen':
                 return redirect('kitchen_dashboard')
             elif role == 'inventory':
@@ -292,6 +292,7 @@ from core.models import Order
 from core.controllers.payment_controller import create_payment
 from core.services.payment_gateway import update_order_payment_status
 from core.controllers.payment_controller import get_payments_for_order
+from core.controllers.payment_controller import handle_split_bill
 
 def payment_form(request):
     if request.method == 'POST':
@@ -299,6 +300,12 @@ def payment_form(request):
         method = request.POST.get('method')
 
         order = Order.objects.get(id=order_id)
+
+        split_requested = request.POST.get('split_bill') == 'yes'
+        if split_requested:
+            handle_split_bill(order)  # You can simulate splitting into parts, log a note, etc.
+        print("Split Requested:", split_requested)
+
      
         payment = create_payment(order, order.total_price, method)
 
@@ -434,6 +441,60 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.dateparse import parse_date
 
 @login_required
+def inventory_dashboard(request):
+    
+    inventory_items = Inventory.objects.all()
+    low_stock_items = Inventory.objects.filter(quantity__lt=10)
+    filter_status = request.GET.get('filter', 'pending')  # default is 'pending'
+
+    if filter_status == 'approved':
+        filtered_restocks = RestockRequest.objects.filter(
+            requested_by__name=request.user.username,
+            is_approved=True
+        ).order_by('-approved_at')
+    else:
+        filtered_restocks = RestockRequest.objects.filter(
+            requested_by__name=request.user.username,
+            is_approved=False
+        ).order_by('-requested_at')
+
+    shift_change_requests = ShiftChangeRequest.objects.filter(
+        staff__name=request.user.username
+    ).order_by('-date_requested')
+
+
+    # You can define a field like "is_discontinued" in your model for cleaner handling
+    discontinued_items = Inventory.objects.filter(name__icontains="(discontinued)")  
+
+    staff_shift_approvals = ShiftChangeRequest.objects.filter(
+        staff__name=request.user.username,
+        status='Approved'
+    )
+
+    return render(request, 'inventory_dashboard.html', {
+        'inventory_items': inventory_items,
+        'low_stock_items': low_stock_items,
+        'filtered_restocks': filtered_restocks,
+        'filter_label': filter_status,
+        'discontinued_items': discontinued_items,
+        'staff_shift_approvals': staff_shift_approvals,
+        'shift_change_requests': shift_change_requests,
+    })
+
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def remove_inventory_item(request, item_id):
+    try:
+        item = Inventory.objects.get(id=item_id)
+        item.delete()
+        messages.success(request, f"{item.name} was successfully removed from inventory.")
+    except Inventory.DoesNotExist:
+        messages.error(request, "Item could not be found.")
+    return redirect('inventory_dashboard')
+
+@login_required
 def report_portal(request):
     message = ""
     reports = []
@@ -498,3 +559,76 @@ def report_portal(request):
 
 def report_success(request):
     return render(request, 'report_success.html')
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from core.models import Order
+from datetime import date
+from django.views.decorators.http import require_POST
+
+@login_required
+def waitstaff_dashboard(request):
+    todays_orders = Order.objects.filter(date__date=timezone.now().date()).order_by('-date')
+
+    split_orders = Order.objects.filter(is_split=True, status='split_pending')
+    print("Split orders:", list(split_orders))
+
+    return render(request, 'waitstaff_dashboard.html', {
+        'todays_orders': todays_orders,
+        'split_orders': split_orders,
+    })
+
+@login_required
+@require_POST
+def split_bill(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    # Log split bill request (for now, placeholder logic)
+    messages.success(request, f"Split bill request noted for Order #{order.id}.")
+    return redirect('waitstaff_dashboard')
+
+@login_required
+@require_POST
+def mark_served(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    order.status = 'served'
+    order.save()
+    messages.success(request, f"Order #{order.id} marked as served.")
+    return redirect('waitstaff_dashboard')
+
+@login_required
+@require_POST
+def resolve_split(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    order.status = 'resolved'
+    order.save()
+    messages.success(request, f"Order #{order.id} split bill marked as resolved.")
+    return redirect('waitstaff_dashboard')
+
+from core.models import Order
+from django.utils import timezone
+
+@login_required
+def kitchen_dashboard(request):  # this MUST match your url name
+    orders = Order.objects.filter(
+        date__date=timezone.now().date(),
+        status__in=['new', 'in_progress']
+    ).order_by('-date')
+    
+    return render(request, 'kitchen_dashboard.html', {'orders': orders})
+
+@login_required
+@require_POST
+def start_preparing(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    order.status = 'in_progress'
+    order.save()
+    return redirect('kitchen_dashboard')
+
+@login_required
+@require_POST
+def mark_ready(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    order.status = 'ready_to_serve'
+    order.save()
+    return redirect('kitchen_dashboard')

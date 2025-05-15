@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Waitstaff Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f8f8f8; }
+    h1, h2 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+    th { background-color: #eee; }
+    form { display: inline; }
+    .btn { padding: 6px 12px; background-color: #007BFF; color: white; border: none; cursor: pointer; border-radius: 4px; }
+    .btn:hover { background-color: #0056b3; }
+    .status-paid { color: green; font-weight: bold; }
+    .status-unpaid { color: red; font-weight: bold; }
+    .section { margin-bottom: 50px; }
+  </style>
+</head>
+<body>
+
+  <h1>👨‍🍳 Waitstaff Dashboard</h1>
+
+  <!-- ✅ Section 1: Split Bill Orders -->
+  <div class="section">
+    <h2>💸 Split Bill Orders (Pending)</h2>
+    {% if split_orders %}
+      <table>
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Total Price</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in split_orders %}
+            <tr>
+              <td>#{{ order.id }}</td>
+              <td>£{{ order.total_price }}</td>
+              <td>
+                {% if order.is_paid %}
+                  <span class="status-paid">Paid</span>
+                {% else %}
+                  <span class="status-unpaid">Pending</span>
+                {% endif %}
+              </tr>
+              <td>
+                <form method="post" action="{% url 'resolve_split' order.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn">Approve</button>
+                 </form>
+              </td>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No split bill orders pending.</p>
+    {% endif %}
+  </div>
+
+  <!-- ✅ Section 3: Request Schedule Change -->
+  <div class="section">
+    <h2>📅 Request Schedule Change</h2>
+    <form action="{% url 'staff_portal' %}" method="get">
+      <button type="submit" class="btn">Go to Staff Schedule Portal</button>
+    </form>
+  </div>
+
+  <!-- ✅ Section 2: Today's Orders -->
+  <div class="section">
+    <h2>🧾 Today's Orders</h2>
+    {% if todays_orders %}
+      <table>
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Customer</th>
+            <th>Total (£)</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in todays_orders %}
+            <tr>
+              <td>#{{ order.id }}</td>
+              <td>{{ order.customer.name }}</td>
+              <td>{{ order.total_price }}</td>
+              <td>{{ order.status }}</td>
+              <td>
+                {% if order.status != 'served' %}
+                  <form method="post" action="{% url 'mark_served' order.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn">Mark as Served</button>
+                  </form>
+                {% else %}
+                  ✅ Served
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No orders for today.</p>
+    {% endif %}
+  </div>
+
+  <form action="{% url 'user_logout' %}" method="post" style="text-align: right;">
+    {% csrf_token %}
+    <button type="submit" class="btn" style="background-color: #dc3545;">Logout</button>
+  </form>
+
+</body>
+</html>

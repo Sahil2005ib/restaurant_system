@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inventory Dashboard</title>
+</head>
+<body>
+
+<h1>📦 Inventory Dashboard</h1>
+
+<a href="{% url 'inventory_portal' %}">Go to Inventory Portal</a> |
+<a href="{% url 'staff_portal' %}">📅 Request Staff Scheduling</a>
+
+<hr>
+<h2>⚠️ Low Stock Items</h2>
+<ul>
+  {% for item in low_stock_items %}
+    <li>
+      {{ item.name }} – {{ item.quantity }} {{ item.unit }}
+      <form method="POST" action="{% url 'remove_inventory_item' item.id %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit">❌ Remove</button>
+      </form>
+    </li>
+  {% empty %}
+    <li>All stock levels are okay.</li>
+  {% endfor %}
+</ul>
+
+<hr>
+<h2>✅ Restock Requests</h2>
+<p>
+  <a href="?filter=pending">Show Pending</a> |
+  <a href="?filter=approved">Show Approved</a>
+</p>
+<ul>
+  {% for req in filtered_restocks %}
+    <li>
+      {{ req.item.name }} - {{ req.quantity_requested }} pcs 
+      {% if req.is_approved %}
+        <span style="color: green;">(Approved on {{ req.approved_at|date:"M d, Y H:i" }})</span>
+      {% else %}
+        <span style="color: orange;">(Pending approval)</span>
+      {% endif %}
+    </li>
+  {% empty %}
+    <li>No {{ filter_label }} restock requests.</li>
+  {% endfor %}
+</ul>
+
+<hr>
+<h2>🗑️ Discontinued Items</h2>
+<ul>
+  {% for item in discontinued_items %}
+    <li>
+      {{ item.name }} – {{ item.quantity }}
+      <form method="POST" action="{% url 'remove_inventory_item' item.id %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit">Delete</button>
+      </form>
+    </li>
+  {% empty %}
+    <li>No discontinued items.</li>
+  {% endfor %}
+</ul>
+
+<hr>
+<h2>📅 My Shift Change Requests</h2>
+<p>Need to report a sick day or request a schedule change?</p>
+<a href="{% url 'staff_portal' %}" class="btn">📅 Request Staff Scheduling</a>
+<ul>
+  {% for req in shift_change_requests %}
+    <li>
+      Requested: {{ req.requested_shift }} <br>
+      <small>Submitted: {{ req.date_requested }}</small><br>
+      <strong>Status: 
+        {% if req.status == 'approved' %}
+          ✅ Approved
+        {% elif req.status == 'rejected' %}
+          ❌ Rejected
+        {% else %}
+          ⏳ Pending
+        {% endif %}
+      </strong>
+    </li>
+  {% empty %}
+    <li>No shift change requests submitted yet.</li>
+  {% endfor %}
+</ul>
+
+<form action="{% url 'user_logout' %}" method="post" style="text-align: right;">
+  {% csrf_token %}
+  <button type="submit" class="btn" style="background-color: #dc3545;">Logout</button>
+</form>
+
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kitchen Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #2c3e50;
+      color: white;
+    }
+    button {
+      padding: 6px 12px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    .logout {
+      text-align: right;
+      margin-bottom: 10px;
+    }
+    .logout button {
+      background: crimson;
+    }
+  </style>
+</head>
+<body>
+
+<div class="logout">
+  <form action="{% url 'user_logout' %}" method="post" style="text-align: right;">
+    {% csrf_token %}
+    <button type="submit" class="btn" style="background-color: #dc3545;">Logout</button>
+  </form>
+</div>
+
+<h1>👨‍🍳 Kitchen Dashboard</h1>
+
+{% if orders %}
+  <table>
+    <thead>
+      <tr>
+        <th>Order #</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+        <tr>
+          <td>#{{ order.id }}</td>
+          <td>{{ order.status }}</td>
+          <td>
+            {% if order.status == 'new' %}
+              <form method="post" action="{% url 'start_preparing' order.id %}">
+                {% csrf_token %}
+                <button type="submit">Start Preparing</button>
+              </form>
+            {% elif order.status == 'in_progress' %}
+              <form method="post" action="{% url 'mark_ready' order.id %}">
+                {% csrf_token %}
+                <button type="submit">Mark as Ready</button>
+              </form>
+            {% else %}
+              Ready to Serve ✅
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No active orders at the moment.</p>
+{% endif %}
+
+</body>
+</html>

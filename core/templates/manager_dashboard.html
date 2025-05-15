@@ -10,7 +10,11 @@
     <ul>
         <li><a href="{% url 'report_portal' %}">View Reports</a></li>
         <li><a href="{% url 'inventory_approval_portal' %}">Approve Inventory Restock</a></li>
-        <li><a href="{% url 'logout' %}">Log Out</a></li>
+
+        <form action="{% url 'user_logout' %}" method="post" style="text-align: right;">
+           {% csrf_token %}
+           <button type="submit" class="btn" style="background-color: #dc3545;">Logout</button>
+        </form>
     </ul>
 
     <hr>

@@ -15,10 +15,10 @@
         Order #{{ order.id }} - £{{ order.total_price }}
       </option>
     {% endfor %}
-  </select>
+  </select><br><br>
 
-  <input type="checkbox" id="split_checkbox" onchange="toggleSplit()" />
-  <label for="split_checkbox">Split bill?</label><br><br>
+  <input type="checkbox" id="split_checkbox" name="split_bill" value="yes" onchange="toggleSplit()" />
+  <label for="split_checkbox">Split bill?</label>
 
   <div id="split_section" style="display:none;">
     <label for="split_count">Number of people:</label>
@@ -32,10 +32,9 @@
   <select name="method" required>
     <option value="card">Card</option>
     <option value="cash">Cash</option>
-    <option value="paypal">PayPal</option>
   </select><br><br>
 
-  <button type="submit">Submit Payment</button>
+  <button type="submit" class="btn">Submit Payment</button>
 </form>
 <form action="{% url 'customer_dashboard' %}">
   <button type="submit">Back to Dashboard</button>

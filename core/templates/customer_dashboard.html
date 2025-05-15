@@ -6,5 +6,9 @@
     <li><a href="/reserve/">Make Reservation</a></li>
     <li><a href="{% url 'order_form' %}">Place Order</a></li>
     <li><a href="/feedback/">Leave Feedback</a></li>
-    <li><a href="{% url 'logout' %}">Log Out</a></li>
+
+    <form action="{% url 'user_logout' %}" method="post" style="text-align: right;">
+       {% csrf_token %}
+       <button type="submit" class="btn" style="background-color: #dc3545;">Logout</button>
+    </form>
 </ul>
